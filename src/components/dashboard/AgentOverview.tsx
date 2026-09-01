@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
 import { fetchAgentDashboardMetrics, AgentDashboardData } from '../../services/agentDashboardService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDashboardErrorHandler } from '../../utils/dashboardError';
@@ -19,7 +21,7 @@ import {
   Globe, 
   ArrowUpRight 
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   agentId: string;
@@ -45,7 +47,7 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
 
   const { profile, institutions, hideSupportCenter } = useAuth();
   const { handleFirestoreError } = useDashboardErrorHandler();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [data, setData] = useState<AgentDashboardData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedCurrency, setSelectedCurrency] = useState<'EUR' | 'USD' | 'NPR'>('USD');
@@ -110,7 +112,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
     if (data.destinations[key] !== undefined) {
       return data.destinations[key];
     }
-    // Try substring matching
     let count = 0;
     Object.keys(data.destinations).forEach(dKey => {
       if (dKey.includes(key) || key.includes(dKey)) {
@@ -143,17 +144,17 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
   ];
 
   const colorHexes = [
-    '#2563EB', // blue-600
-    '#F43F5E', // rose-500
-    '#F59E0B', // amber-500
-    '#10B981', // emerald-500
-    '#0059E7', // Allianza blue
-    '#0EA5E9', // sky-500
-    '#6366F1', // indigo-500
-    '#EC4899'  // pink-500
+    '#2563EB',
+    '#F43F5E',
+    '#F59E0B',
+    '#10B981',
+    '#0059E7',
+    '#0EA5E9',
+    '#6366F1',
+    '#EC4899'
   ];
 
-  const gradientSegments = React.useMemo(() => {
+  const gradientSegments = useMemo(() => {
     if (preferredDestinations.length === 0) return '';
     const segments: string[] = [];
     let cumulatedPercent = 0;
@@ -183,7 +184,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
         setData(metrics);
       } catch (err) {
         handleFirestoreError(err);
-        // Fallback default metrics to prevent blank screen
         setData({
           companyName: agencyName || "Agent Partner",
           totalApplications: 0,
@@ -202,7 +202,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
     }
   }, [agentId, agencyName]);
 
-  // Clean suffix strings like "Pvt. Ltd.", "LLC", "Education", etc. from Company names
   const cleanCompanyName = (name: string) => {
     if (!name) return 'Agent';
     return name
@@ -232,7 +231,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
   if (showOnboarding) {
     return (
       <div className="w-full font-sans antialiased select-none selection:bg-blue-600/10 space-y-12">
-        {/* 🟦 LAUNCHPAD GREETING BANNER - UNCHANGED AS REQUESTED */}
         <div className="w-full bg-gradient-to-r from-[#0B1528] via-[#0F1E36] to-[#0D59E7] rounded-[20px] p-4 sm:p-8 text-white flex flex-col md:flex-row justify-between items-start md:items-center shadow-lg shadow-blue-900/5 relative overflow-hidden">
           <div className="absolute inset-0 overflow-hidden rounded-[20px] pointer-events-none">
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-sky-400 via-transparent to-transparent pointer-events-none" />
@@ -246,11 +244,9 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
           </div>
         </div>
 
-        {/* 🚀 REDESIGNED ONBOARDING EXPERIENCE */}
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             
-            {/* LEFT COLUMN: GUIDED SETUP (Col-span 7) */}
             <div className="lg:col-span-7 space-y-10">
               <div className="space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100">
@@ -266,9 +262,7 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
                 </p>
               </div>
 
-              {/* ROADMAP MODULES */}
               <div className="grid gap-6">
-                {/* MODULE 1: COMPLETED */}
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -289,7 +283,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
                   </div>
                 </motion.div>
 
-                {/* MODULE 2: ACTION REQUIRED */}
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -310,7 +303,7 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
                     <button 
                       onClick={() => {
                         window.location.hash = '#settings-compliance';
-                        navigate('/dashboard?tab=Settings&sub=compliance');
+                        router.push('/dashboard?tab=Settings&sub=compliance');
                       }}
                       className="inline-flex items-center gap-2 px-8 py-4 bg-[#0059E7] text-white rounded-2xl font-bold text-[11px] tracking-widest hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5"
                     >
@@ -319,7 +312,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
                   </div>
                 </motion.div>
 
-                {/* MODULE 3: PENDING */}
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -342,15 +334,12 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
               </div>
             </div>
 
-            {/* RIGHT COLUMN: ECOSYSTEM PREVIEW (Col-span 5) */}
             <div className="lg:col-span-5 space-y-8">
-              {/* VISUAL PREVIEW CARD */}
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="relative bg-market-trends-gradient rounded-[2.5rem] p-8 overflow-hidden text-white shadow-2xl shadow-blue-900/20"
               >
-                {/* Decorative mesh */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] -mr-32 -mt-32" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full blur-[80px] -ml-32 -mb-32" />
                 
@@ -360,7 +349,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
                     <p className="text-slate-400 text-sm">Real-time data from the Allianza network.</p>
                   </div>
 
-                  {/* MINI WIDGETS */}
                   <div className="space-y-4">
                     <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all cursor-default">
                       <div className="flex items-center justify-between mb-3">
@@ -396,7 +384,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
                 </div>
               </motion.div>
 
-              {/* SECONDARY INFO CARD */}
               <div className="bg-slate-50 border border-slate-200 rounded-[2.5rem] p-8 space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-blue-600 shadow-sm">
@@ -414,7 +401,7 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
 
                 {!hideSupportCenter && (
                   <button 
-                    onClick={() => navigate('/help-support')}
+                    onClick={() => router.push('/help-support')}
                     className="w-full py-4 bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2"
                   >
                     Contact Integration Support <ArrowRight size={14} />
@@ -432,7 +419,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
   return (
     <div className="w-full font-sans antialiased select-none selection:bg-blue-600/10 space-y-8">
       
-      {/* 🟦 TOP BANNER MODULE (Ref: Uni Dashboard Top Bar and Cards.png) */}
       <div className="w-full bg-gradient-to-r from-[#0B1528] via-[#0F1E36] to-[#0D59E7] rounded-[20px] p-5 sm:p-7 text-white flex flex-col lg:flex-row justify-between items-start lg:items-center shadow-lg shadow-blue-900/5 relative gap-4 lg:gap-6">
         <div className="absolute inset-0 overflow-hidden rounded-[20px] pointer-events-none">
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-sky-400 via-transparent to-transparent pointer-events-none" />
@@ -455,10 +441,8 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
         </div>
       </div>
 
-      {/* 📊 CORE 4-CARD METRIC GRID (Ref: Uni Dashboard Top Bar and Cards.png) */}
       <div className="grid grid-cols-1 xl:grid-cols-4 md:grid-cols-2 gap-6 items-start">
         
-        {/* CARD 1: TOTAL APPLICANTS STYLE PROFILE WITH CIRCULAR PIE CHART */}
         {(() => {
           const pipelinePieData = [
             { name: 'Incomplete', value: data.pipeline.incomplete || 0, color: '#F59E0B', key: 'incomplete' },
@@ -502,7 +486,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
           );
         })()}
 
-        {/* CARD 2: ACADEMIC TIER STACKED PROGRESS PATTERN */}
         <div className="bg-white/50 backdrop-blur-xl border border-white/20 rounded-[2rem] p-6 shadow-xl shadow-slate-200/40 h-[340px] flex flex-col justify-between group hover:translate-y-[-2px] transition-all duration-300">
           <div>
             <h3 className="text-[10px] font-black text-slate-400 tracking-[0.2em]">Compliance Health Index</h3>
@@ -550,12 +533,8 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
           <div className="text-[9px] font-black text-slate-400 text-center border-t border-slate-100/50 pt-2 tracking-[0.1em]">Verification matrix synced</div>
         </div>
 
-        {/* CARD 3: REFACTORED MARKET SOURCING CARD */}
         <MarketSourcingCard agentId={agentId} institutions={institutions} />
 
-        {/* CARD 4: TOTAL AGENTS STYLE LAYOUT MODIFIED FOR COMMISSIONS */}
-
-        {/* CARD 4: TOTAL AGENTS STYLE LAYOUT MODIFIED FOR COMMISSIONS */}
         <div className="bg-white/50 backdrop-blur-xl border border-white/20 rounded-[2rem] p-5 xl:p-6 shadow-xl shadow-slate-200/40 h-[340px] flex flex-col justify-between group hover:translate-y-[-2px] transition-all duration-300">
           <div>
             <div className="flex justify-between items-center relative z-10">
@@ -607,14 +586,12 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
             </div>
           </div>
 
-          {/* CIRCULAR DIAGRAM WITH CLEARED & FORECAST PLACED BELOW */}
           {(() => {
             const totalComm = (data.commissions.cleared || 0) + (data.commissions.forecast || 0);
             const clearedPercent = totalComm > 0 ? ((data.commissions.cleared || 0) / totalComm) * 100 : 50;
 
             return (
               <div className="flex flex-col items-center justify-center flex-1 my-1 w-full min-h-0">
-                {/* Circular Donut Diagram */}
                 <div className="relative flex items-center justify-center my-auto">
                   <div 
                     className="w-16 h-16 xl:w-20 xl:h-20 rounded-full flex items-center justify-center shadow-inner relative transition-transform hover:scale-105 duration-300 shrink-0"
@@ -633,7 +610,6 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
                   </div>
                 </div>
 
-                {/* Cleared and Forecast Currency placed below the circular diagram */}
                 <div className="w-full grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100/60">
                   <div 
                     onClick={() => onMetricClick?.('commissions', 'cleared')}
