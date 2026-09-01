@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import DashboardPageClient from "@/components/dashboard/DashboardPageClient";
+import DashboardPageClient from "@/pages/Dashboard";
 
 export const metadata: Metadata = {
   title: "Dashboard | Allianza",
