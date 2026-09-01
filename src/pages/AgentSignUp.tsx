@@ -1297,7 +1297,7 @@ const AgentSignUp = () => {
                     </button>
                   )}
 
-                  {currentStep === 3 ? (
+                  {currentStep < 3 ? (
                     <button
                       type="submit"
                       disabled={loading || hasRole}
