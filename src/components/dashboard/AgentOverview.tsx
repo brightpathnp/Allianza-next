@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { fetchAgentDashboardMetrics, AgentDashboardData } from '../../services/agentDashboardService';
-import { useAuth } from '../../contexts/AuthContext';
-import { useDashboardErrorHandler } from '../../utils/dashboardError';
+import { fetchAgentDashboardMetrics, AgentDashboardData } from '@/services/agentDashboardService';
+import { useAuth } from '@/contexts/AuthContext';
+import { useDashboardErrorHandler } from '@/utils/dashboardError';
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { FunnelChart } from '@/components/analytics/FunnelChart';
@@ -65,6 +65,16 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
     const fetchRates = async () => {
       try {
         const response = await fetch('/api/currency-rates');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Response is not JSON');
+        }
+        
         const data = await response.json();
         const rates = data.data?.payload?.rates || data;
         
@@ -84,7 +94,8 @@ export default function AgentOverview({ agentId, agencyName, actionComponent, on
           }
         }
       } catch (err) {
-        console.error("Failed to fetch currency rates via proxy", err);
+        console.warn("Failed to fetch currency rates via proxy, using fallback rates:", err);
+        // Keep the default fallback rates
       }
     };
     fetchRates();
